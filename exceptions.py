@@ -11,3 +11,4 @@ class UnrecognizedShips(RegistrationError):
 
 
 class SpamError(RegistrationError):
+    pass
