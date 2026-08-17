@@ -46,7 +46,10 @@ class UserRegistry:
 
 
 class ShipCatalog:
-    def __init__(self, known_ships: list[tuple[int, str, str, str, str]]):
+    Source = Path("known_ships.ods")
+    def __init__(self, known_ships: list[tuple[int, str, str, str, str]] | None = None):
+        if known_ships is None:
+            known_ships = self.load_known_ships(self.Source)
         self.by_tier = self.organize_by_tier(known_ships)
         self.by_type = self.organize_by_type(known_ships)
         self.by_subtype = self.organize_by_subtype(known_ships)

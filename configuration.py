@@ -2,7 +2,7 @@ import tomllib
 from pathlib import Path
 
 TOML_TEXT = """
-title = Bot Authentication
+title = "Bot Authentication"
 
 [auth]
 token = "INSERT TOKEN HERE"
@@ -18,5 +18,5 @@ def load(config_file=Path('config.toml')):
             f.write(TOML_TEXT)
         raise FileNotFoundError(f'{config_file!s} not found.'
                                 + 'File created with template; please fill out `token` field and launch again.')
-    with open(config_file, 'rb', encoding='utf-8') as f:
+    with open(config_file, 'rb') as f:
         return tomllib.load(f)

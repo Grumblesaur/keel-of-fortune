@@ -17,6 +17,20 @@ class Preset(IntEnum):
     Operations = 2
     Asymmetric = 3
 
+    @classmethod
+    def from_name(cls, name: str):
+        if 'asymmetric'.startswith(name.casefold()):
+            return cls.Asymmetric
+        if 'operations'.startswith(name.casefold()):
+            return cls.Operations
+        if 'randoms'.startswith(name.casefold()):
+            return cls.Random
+        if 'lowrandoms'.startswith(name.casefold()):
+            return cls.LowTierRandom
+        if 'lowoperations'.startswith(name.casefold()):
+            return cls.LowTierOperations
+        return cls.NoLimits
+
     def limits(self, count: int, cv: bool = False, ss: bool = False) -> dict[str, int]:
         if self is self.Random or self is self.LowTierRandom:
             return self._random(count, cv, ss)
