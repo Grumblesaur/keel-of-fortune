@@ -58,6 +58,15 @@ async def unregister(ctx: commands.Context):
     await ctx.message.reply("You have been removed from the registry.")
 
 
+@bot.command('div')
+async def division(ctx: commands.Context, gamemode: Preset.from_name, divsize: int, tier: int):
+    comp = randomizer.division_anonymous(divsize, tier, gamemode)
+    rows = [f'  - **{stype}**: {count}' for stype, count in sorted(comp.items(), key=lambda x: x[0])]
+    msg = "Your team composition is:\n" + '\n'.join(rows)
+    await ctx.message.reply(msg)
+
+
+
 def main():
     bot.run(token)
 

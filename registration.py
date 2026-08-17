@@ -28,7 +28,7 @@ class UserRegistry:
         ships = [canonicalize(ship) for ship in read_ships(uploaded_file, self.upload_limit)]
         unknown = sorted(ship for ship in ships if not ship_catalog.has(ship))
         if any(unknown):
-            raise UnrecognizedShips("Ships or spellings not recognized: \n" + '\n    '.join(unknown))
+            raise UnrecognizedShips("Ships or spellings not recognized: \n  - " + '\n  - '.join(unknown))
         with open(self.user_path(handle), 'w', encoding='utf-8') as f:
             for ship in ships:
                 f.write(f'{ship}\n')
