@@ -22,6 +22,7 @@ async def on_ready() -> None:
     print(f'Logged in as `{bot.user!s}`.')
 
 
+# noinspection type-hints
 @bot.command('tier')
 async def random_tier(ctx: commands.Context, gamemode: Preset.from_name):
     tier = randomizer.tier(gamemode)
@@ -59,6 +60,7 @@ async def unregister(ctx: commands.Context):
     await ctx.message.reply("You have been removed from the registry.")
 
 
+# noinspection type-hints
 @bot.command('div')
 async def division(ctx: commands.Context, gamemode: Preset.from_name, divsize: int, tier: int):
     comp = randomizer.division_anonymous(divsize, tier, gamemode)
@@ -84,8 +86,9 @@ async def validate_registration(ctx, handles: dict[str, str]) -> bool:
     return True
 
 
+# noinspection type-hints
 @bot.command('comp')
-async def div_comp(ctx: commands.Context, gamemode: Preset.from_name, tier: int, *players):
+async def div_comp(ctx: commands.Context, gamemode: Preset.from_name, tier: int, *_):
     handles = get_handles(ctx)
     if not await validate_registration(ctx, handles):
         return
@@ -95,8 +98,9 @@ async def div_comp(ctx: commands.Context, gamemode: Preset.from_name, tier: int,
     await ctx.message.reply(msg)
 
 
+# noinspection type-hints
 @bot.command('slots')
-async def div_slots(ctx: commands.Context, gamemode: Preset.from_name, tier: int, *players):
+async def div_slots(ctx: commands.Context, gamemode: Preset.from_name, tier: int, *_):
     handles = get_handles(ctx)
     if not await validate_registration(ctx, handles):
         return
