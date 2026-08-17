@@ -39,7 +39,7 @@ class UserRegistry:
         self.registered.remove(handle)
 
     def user_path(self, handle: str) -> Path:
-        return self.source / f'{handle}.ship'
+        return self.source / f'{handle}.txt'
 
     def fetch_ships(self, handle: str) -> set[str]:
         return read_ships(self.user_path(handle))

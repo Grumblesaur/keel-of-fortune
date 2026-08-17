@@ -19,15 +19,16 @@ class Preset(IntEnum):
 
     @classmethod
     def from_name(cls, name: str):
-        if 'asymmetric'.startswith(name.casefold()):
+        name = name.casefold()
+        if 'asymmetric'.startswith(name):
             return cls.Asymmetric
-        if 'operations'.startswith(name.casefold()):
+        if 'operations'.startswith(name) or name == 'ops':
             return cls.Operations
-        if 'randoms'.startswith(name.casefold()):
+        if 'randoms'.startswith(name):
             return cls.Random
-        if 'lowrandoms'.startswith(name.casefold()):
+        if 'lowrandoms'.startswith(name):
             return cls.LowTierRandom
-        if 'lowoperations'.startswith(name.casefold()):
+        if 'lowoperations'.startswith(name):
             return cls.LowTierOperations
         return cls.NoLimits
 

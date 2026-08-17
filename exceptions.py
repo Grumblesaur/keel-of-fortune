@@ -6,6 +6,10 @@ class RegistrationError(RandomizerError):
     pass
 
 
+class UploadError(RegistrationError):
+    pass
+
+
 class UnrecognizedShips(RegistrationError):
     pass
 
