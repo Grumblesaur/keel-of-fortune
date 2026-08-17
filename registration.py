@@ -24,6 +24,9 @@ class UserRegistry:
             user_path = Path(user_file)
             self.registered.add(user_path.name.removesuffix(user_path.suffix))
 
+    def is_registered(self, handle: str):
+        return handle in self.registered
+
     def register(self, uploaded_file: Path, handle: str, ship_catalog: ShipCatalog):
         ships = [canonicalize(ship) for ship in read_ships(uploaded_file, self.upload_limit)]
         unknown = sorted(ship for ship in ships if not ship_catalog.has(ship))
@@ -59,6 +62,10 @@ class ShipCatalog:
         found = self.lookup.get(canonicalize(ship))
         return bool(found)
 
+    def type_tier(self, ship: str) -> tuple[str, int]:
+        ship_data = self.lookup[ship]
+        return ship_data['type'], ship_data['tier']
+
     @classmethod
     def load_known_ships(cls, ods_file: Path) -> list[tuple[int, str, str, str, str]]:
         ships = read_excel(ods_file)
@@ -75,7 +82,7 @@ class ShipCatalog:
         return by_tier
 
     @staticmethod
-    def organize_for_lookup(known_ships: list[tuple[int, str, str, str, str]]) -> dict[str, dict[str, str]]:
+    def organize_for_lookup(known_ships: list[tuple[int, str, str, str, str]]) -> dict[str, dict]:
         info = defaultdict(dict)
         for tier, nation, stype, subtype, name in known_ships:
             info[name]['tier'] = tier

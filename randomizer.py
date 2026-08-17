@@ -1,4 +1,4 @@
-from exceptions import ImproperSize
+from exceptions import ImproperSize, UnregisteredPlayers
 from registration import ShipCatalog, UserRegistry
 from random import choice, choices, randint
 from collections import defaultdict, Counter
