@@ -107,7 +107,7 @@ class canonicalize:
         "M. van Coehoorn": "Menno van Coehoorn",
         "Hercules": "Hércules",
         "Alm. Barroso": "Almirante Barroso",
-        "Almte. Abreu": "Almirante Abreu",
+        "Alm. Abreu": "Almirante Abreu",
         "Jurua": "Juruá",
         "Cordoba": "Córdoba",
         "Almte. Cochrane": "Almirante Cochrane",

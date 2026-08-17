@@ -12,3 +12,10 @@ class UnrecognizedShips(RegistrationError):
 
 class SpamError(RegistrationError):
     pass
+
+
+class DivisionError(RandomizerError):
+    pass
+
+class ImproperSize(DivisionError):
+    pass
