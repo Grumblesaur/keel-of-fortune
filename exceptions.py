@@ -17,5 +17,6 @@ class SpamError(RegistrationError):
 class DivisionError(RandomizerError):
     pass
 
+
 class ImproperSize(DivisionError):
     pass
