@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import configuration
 import discord
@@ -155,6 +156,18 @@ async def by_type_tier(ctx: commands.Context, stype: str, tier: int):
 @bot.command('bytiertype')
 async def by_tier_type(ctx: commands.Context, tier: int, stype: str):
     await by_type_tier(ctx, stype, tier)
+
+
+@bot.command('shiplist')
+async def ship_list(ctx: commands.Context):
+    src = ship_catalog.Source
+    dst = Path(f'{ctx.message.author.display_name}{src.suffix}')
+    shutil.copy(src, dst)
+    await ctx.message.reply("Here is your ship worksheet. Mark the `Add Ship to Randomizer`"
+                            " column with `X` for each ship you wish to add to your randomization pool."
+                            " Remember to check the tabs for different nations.\n\nWhen finished, attach"
+                            " this file to a `+register` command.", file=discord.File(dst))
+    os.remove(dst)
 
 
 def main():

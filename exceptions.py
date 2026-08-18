@@ -10,6 +10,10 @@ class UploadError(RegistrationError):
     pass
 
 
+class UnrecognizedFileType(UploadError):
+    pass
+
+
 class UnrecognizedShips(RegistrationError):
     pass
 
