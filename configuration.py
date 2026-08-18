@@ -2,7 +2,7 @@ import tomllib
 from pathlib import Path
 
 TOML_TEXT = """
-title = "Bot Authentication"
+title = "Keel of Fortune Configuration"
 
 [auth]
 token = "INSERT TOKEN HERE"
