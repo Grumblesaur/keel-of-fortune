@@ -253,6 +253,7 @@ class canonicalize:
         "E. Dragon": "Eastern Dragon",
         "S. Dragon": "Southern Dragon",
         "Scheer": "Admiral Scheer",
+        "S. Thunder": "Scarlet Thunder",
     }
 
     def __new__(cls, ship_name: str) -> str:

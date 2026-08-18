@@ -93,8 +93,8 @@ async def div_comp(ctx: commands.Context, gamemode: Preset.from_name, tier: int,
     if not await validate_registration(ctx, handles):
         return
     comp = randomizer.division(list(handles.keys()), tier=tier, preset=gamemode, choose_ships=True)
-    msg = ("Your ship assignments are:\n  - "
-           + '\n  - '.join(f'{handles[handle]}: {ship}' for handle, ship in comp.items()))
+    msg = (f"Your ship assignments for tier {roman(tier)} {gamemode.name} are:\n- "
+           + '\n- '.join(f'{handles[handle]}: {ship}' for handle, ship in comp.items()))
     await ctx.message.reply(msg)
 
 
@@ -105,7 +105,7 @@ async def div_slots(ctx: commands.Context, gamemode: Preset.from_name, tier: int
     if not await validate_registration(ctx, handles):
         return
     slots = randomizer.division(list(handles.keys()), tier=tier, preset=gamemode, choose_ships=False)
-    msg = "Your slot assignments are:\n  - " + '\n  - '.join(f'{handles[handle]}: {slot}' for handle, slot in slots.items())
+    msg = f"Your slot assignments for {roman(tier)} {gamemode.name} are:\n- " + '\n- '.join(f'{handles[handle]}: {slot}' for handle, slot in slots.items())
     await ctx.message.reply(msg)
 
 
@@ -128,7 +128,7 @@ async def by_tier(ctx: commands.Context, tier: int):
     handle, name = handles.popitem()
     ship = randomizer.by_tier(handle, tier)
     stype, _ = ship_catalog.type_tier(ship)
-    await ctx.message.reply(f'Your ship assignment is {stype} {roman(tier)} {ship}.')
+    await ctx.message.reply(f'Your ship assignment is [{stype}] **{roman(tier)}** {ship}.')
 
 
 @bot.command('bytype')
@@ -139,7 +139,7 @@ async def by_type(ctx: commands.Context, stype: str):
     handle, name = handles.popitem()
     ship = randomizer.by_type(handle, stype)
     _, tier = ship_catalog.type_tier(ship)
-    await ctx.message.reply(f'Your ship assignment is {stype} {roman(tier)} {ship}.')
+    await ctx.message.reply(f'Your ship assignment is [{stype}] **{roman(tier)}** {ship}.')
 
 
 @bot.command('bytypetier')
@@ -149,7 +149,7 @@ async def by_type_tier(ctx: commands.Context, stype: str, tier: int):
         return
     handle, name = handles.popitem()
     ship = randomizer.by_type_and_tier(handle, tier, stype)
-    await ctx.message.reply(f'Your ship assignment is {stype} {roman(tier)} {ship}.')
+    await ctx.message.reply(f'Your ship assignment is [{stype}] **{roman(tier)}** {ship}.')
 
 
 @bot.command('bytiertype')
