@@ -64,8 +64,8 @@ async def unregister(ctx: commands.Context):
 @bot.command('div')
 async def division(ctx: commands.Context, gamemode: Preset.from_name, divsize: int, tier: int):
     comp = randomizer.division_anonymous(divsize, tier, gamemode)
-    rows = [f'  - **{stype}**: {count}' for stype, count in sorted(comp.items(), key=lambda x: x[0])]
-    msg = "Your division slots are:\n" + '\n'.join(rows)
+    rows = [f'- **{stype}**: {count}' for stype, count in sorted(comp.items(), key=lambda x: x[0]) if count]
+    msg = f"At tier {tier} with {divsize} players, your division slots are:\n" + '\n'.join(rows)
     await ctx.message.reply(msg)
 
 
@@ -157,9 +157,9 @@ async def by_tier_type(ctx: commands.Context, tier: int, stype: str):
     await by_type_tier(ctx, stype, tier)
 
 
-
 def main():
     bot.run(token)
+
 
 if __name__ == '__main__':
     main()

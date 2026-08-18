@@ -20,6 +20,8 @@ class UserRegistry:
 
     def __init__(self):
         self.registered = set()
+        if not self.source.exists():
+            os.mkdir(self.source)
         for user_file in os.listdir(self.source):
             user_path = Path(user_file)
             self.registered.add(user_path.name.removesuffix(user_path.suffix))
