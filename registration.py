@@ -32,8 +32,8 @@ def read_registration(ship_file: Path, limit: int | None = 70 * 1024) -> set[str
         with open(ship_file, 'r') as f:
             player_ships = set(f.read().splitlines())
     else:
-        raise UnrecognizedFileType(f"Unsupported extension: `{ship_file.suffix}`. "
-                                   + "Use `+shiplist` for further instructions.")
+        raise UnrecognizedFileType(f"Unsupported extension: `{ship_file.suffix}`."
+                                   + " Use `+shiplist` for further instructions.")
     return player_ships
 
 
@@ -56,7 +56,8 @@ class UserRegistry:
         ships = [ship for ship in read_registration(uploaded_file)]
         unknown = sorted(ship for ship in ships if not ship_catalog.has(ship))
         if any(unknown):
-            raise UnrecognizedShips("Ships or spellings not recognized: \n  - " + '\n  - '.join(unknown))
+            raise UnrecognizedShips("Ships or spellings not recognized: \n  - " + '\n  - '.join(unknown)
+                                    + "\n\n If you believe this to be in error, please contact Grumblesaur.")
         with open(self.user_path(handle), 'w', encoding='utf-8') as f:
             for ship in ships:
                 f.write(f'{ship}\n')
