@@ -34,7 +34,9 @@ async def validate_registration(ctx, handles: dict[str, str]) -> bool:
     unregistered = [handle for handle in handles.keys() if not user_registry.is_registered(handle)]
     if unregistered:
         await ctx.message.reply("No randomization list(s) registered for the following user(s):\n  - "
-                                + "\n  - ".join(handles[handle] for handle in unregistered))
+                                + "\n  - ".join(handles[handle] for handle in unregistered)
+                                + "\n\nThey must `+register` before they can be included in"
+                                  " player-aware divisions.")
         return False
     return True
 
@@ -49,7 +51,7 @@ async def on_ready() -> None:
 async def random_tier(ctx: commands.Context, gamemode: Preset.from_name):
     """Reply with a random tier for the applicable gamemode."""
     tier = randomizer.tier(gamemode)
-    await ctx.message.reply(f'Your random tier is {roman(tier)}.')
+    await ctx.message.reply(f'Your random tier is **{roman(tier)}**.')
 
 
 @bot.command('register')
@@ -61,7 +63,7 @@ async def register(ctx: commands.Context):
         return
     file = ctx.message.attachments.pop()
     handle = ctx.message.author.id
-    await file.save(temp_file := Path(f'tmp-{handle}.ships'))
+    await file.save(temp_file := Path(f'{handle}.ods'))
     try:
         user_registry.register(temp_file, str(ctx.message.author.id), ship_catalog)
     except (UnrecognizedShips, UnrecognizedFileType) as e:
@@ -83,33 +85,41 @@ async def unregister(ctx: commands.Context):
 
 @bot.command('shiplist')
 async def ship_list(ctx: commands.Context):
+    """Provide a template randomization list."""
     src = ship_catalog.Source
-    dst = Path(f'{ctx.message.author.display_name}{src.suffix}')
+    dst = Path(f'{ctx.message.author.display_name}-ship-list-template{src.suffix}')
     shutil.copy(src, dst)
     await ctx.message.reply("Here is your ship worksheet. Mark the `Add Ship to Randomizer`"
                             " column with `X` for each ship you wish to add to your randomization pool."
                             " Remember to check the tabs for different nations.\n\nWhen finished, attach"
-                            " this file to a `+register` command.", file=discord.File(dst))
+                            " this file to a `+register` command."
+                            "\n\nIf you are unable to open this file,"
+                            " download [LibreOffice](https://www.libreoffice.org/) or convert to `.xlsx`.",
+                            file=discord.File(dst))
     os.remove(dst)
 
 
 # noinspection PyTypeHints
 @bot.command('div')
 async def division(ctx: commands.Context, gamemode: Preset.from_name, divsize: int, tier: int):
+    """Provide a random player-agnostic composition of ship slots for the selected gamemode,
+    division size, and tier."""
     comp = randomizer.division_anonymous(divsize, tier, gamemode)
-    rows = [f'- **{stype}**: {count}' for stype, count in sorted(comp.items(), key=lambda x: x[0]) if count]
-    msg = f"At tier {tier} with {divsize} players, your division slots are:\n" + '\n'.join(rows)
+    rows = [f'- [{stype}]: {count}' for stype, count in sorted(comp.items(), key=lambda x: x[0]) if count]
+    msg = f"At tier **{roman(tier)}** with {divsize} players, your division slots are:\n" + '\n'.join(rows)
     await ctx.message.reply(msg)
 
 
 # noinspection PyTypeHints
 @bot.command('comp')
 async def div_comp(ctx: commands.Context, gamemode: Preset.from_name, tier: int, *_):
+    """Provide a random composition of ships for the selected gamemode and tier while accounting
+    for the included players' ship registration lists."""
     handles = get_handles(ctx)
     if not await validate_registration(ctx, handles):
         return
     comp = randomizer.division(list(handles.keys()), tier=tier, preset=gamemode, choose_ships=True)
-    msg = (f"Your ship assignments for tier {roman(tier)} {gamemode.name} are:\n- "
+    msg = (f"Your ship assignments for tier **{roman(tier)}** {gamemode.name} are:\n- "
            + '\n- '.join(f'{handles[handle]}: {ship}' for handle, ship in comp.items()))
     await ctx.message.reply(msg)
 
@@ -121,7 +131,8 @@ async def div_slots(ctx: commands.Context, gamemode: Preset.from_name, tier: int
     if not await validate_registration(ctx, handles):
         return
     slots = randomizer.division(list(handles.keys()), tier=tier, preset=gamemode, choose_ships=False)
-    msg = f"Your slot assignments for {roman(tier)} {gamemode.name} are:\n- " + '\n- '.join(f'{handles[handle]}: {slot}' for handle, slot in slots.items())
+    msg = (f"Your slot assignments for **{roman(tier)}** {gamemode.name} are:\n- "
+           + '\n- '.join(f'{handles[handle]}: {slot}' for handle, slot in slots.items()))
     await ctx.message.reply(msg)
 
 
@@ -133,7 +144,7 @@ async def any_ship(ctx: commands.Context):
     handle, name = handles.popitem()
     ship = randomizer.any_ship(handle)
     stype, stier = ship_catalog.type_tier(ship)
-    await ctx.message.reply(f"Your ship assignment is {stype} {roman(stier)} {ship}.")
+    await ctx.message.reply(f"Your ship assignment is [{stype}] **{roman(stier)}** {ship}.")
 
 
 @bot.command('bytier')

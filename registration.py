@@ -25,7 +25,7 @@ def read_registration(ship_file: Path, limit: int | None = 70 * 1024) -> set[str
         sheets = read_excel(ship_file, sheet_name=None)
         player_ships = set()
         for nation, df in sheets.items():
-            for index, (name, _, _, _, randomize) in df.iterrows():
+            for index, (name, _, _, _, randomize, *_) in df.iterrows():
                 if not isnan(randomize):
                     player_ships.add(name)
     elif ship_file.suffix == '.txt':
@@ -56,8 +56,8 @@ class UserRegistry:
         ships = [ship for ship in read_registration(uploaded_file)]
         unknown = sorted(ship for ship in ships if not ship_catalog.has(ship))
         if any(unknown):
-            raise UnrecognizedShips("Ships or spellings not recognized: \n  - " + '\n  - '.join(unknown)
-                                    + "\n\n If you believe this to be in error, please contact Grumblesaur.")
+            raise UnrecognizedShips("Ships or spellings not recognized: \n- " + '\n- '.join(unknown)
+                                    + "\n\nIf you believe this is an error, please contact Grumblesaur.")
         with open(self.user_path(handle), 'w', encoding='utf-8') as f:
             for ship in ships:
                 f.write(f'{ship}\n')
