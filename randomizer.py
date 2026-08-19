@@ -99,6 +99,26 @@ class Preset(IntEnum):
         slots['BB'] = randint(0, (divsize - sum(slots.values())) // 2)
         slots['DD'] = randint(0, (divsize - sum(slots.values())) // 2)
         slots['CX'] = divsize - sum(slots.values())
+        cx_max = 4
+        bb_max = 3
+        dd_max = 3
+        cv_max = 1
+        ss_max = 1
+
+        if (cx_total := slots['CX']) > cx_max:
+            difference = cx_total - cx_max
+            possible_slots = {
+                'CV': cv_max - slots['CV'],
+                'DD': dd_max - slots['DD'],
+                'BB': bb_max - slots['BB'],
+                'SS': ss_max - slots['SS'],
+            }
+            transferable = {key: value for key, value in possible_slots.items() if value > 0}
+            while difference > 0:
+                stype, _ = transferable.popitem()
+                slots['CX'] -= 1
+                slots[stype] += 1
+                difference -= 1
         return slots
 
     def _asymmetric(self, divsize: int = 5, cv: bool = False, ss: bool = False) -> Counter[str]:
