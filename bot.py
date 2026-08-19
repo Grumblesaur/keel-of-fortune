@@ -56,7 +56,7 @@ async def on_ready() -> None:
 @bot.command('info')
 async def info_msg(ctx: commands.Context):
     """Detailed command information."""
-    help_text = ["# Keel of Fortune Commands",
+    help_text = ["# Keel of Fortune",
         f"- All commands are prefixed with `{config['config']['prefix']}` (default: `+`).",
         "- Required arguments are marked with <angle brackets>.",
         "- Arguments marked with `*` require one or more entries.",
