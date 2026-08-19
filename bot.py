@@ -1,5 +1,6 @@
 import os
 import shutil
+import time
 
 import configuration
 import discord
@@ -48,66 +49,61 @@ async def on_ready() -> None:
                               activity=discord.Activity(
                                   type=discord.ActivityType.custom,
                                   name="custom",
-                                  state="Listening for `+help`"
+                                  state="Listening for `+info`"
                               ))
 
 
-@bot.command('help')
-async def help_msg(ctx: commands.Context):
-    """Reply with command information."""
-    help_text = f"""# Keel of Fortune Commands
-    - All commands are prefixed with `{config['config']['prefix']}` (default: `+`).
-    - Required arguments are marked with <angle brackets>.
-    - Arguments marked with `*` require one or more entries.
-    
-    ## Supported gamemodes
-    - `asymmetric` or `asym`: Asymmetric, tiers VI–X
-    - `operations` or `ops`: Operations, tiers VI–X
-    - `randoms` or `rand`: Randoms, tiers V–X
-    - `lowrandoms` or `lowrand`: Randoms, tiers I–IV
-    - `lowoperations` or `lowops`: Operations, tiers II–V
-    
-    ## Supported types
-    - `BB`: Battleships
-    - `CV`: Carriers
-    - `CX`: Cruisers
-    - `DD`: Destroyers
-    - `SS`: Submarines
-    
-    ## Commands
-    ### Unregistered commands
-    These commands do not require registering a randomization list.
-    - `help`: Display this message.
-    - `tier <gamemode>`: Select a random valid tier for the chosen gamemode. 
-    - `register`: Register the attached randomization list.
-    - `shiplist`: Obtain an unfilled template for a randomization list.
-    - `unregister`:  Unregister your randomization list.
-    
-    ### Registered commands
-    These commands require registering a randomization list. Players included by `@mention` must be registered.
-    - `div <gamemode> <divsize> <tier>`: Generate a valid slot composition for the gamemode, size of division, and tier.
-    - `comp <gamemode> <tier> <* @mentions>`: Randomly select a ship by gamemode and tier for the user entering the command and all `@mention`'d players.
-    - `slots <gamemode> <tier> <* @mentions>`: Randomly select a slot by gamemode and tier for the user entering the command and all `@mention`'d players.
-    - `any`: Randomly selects any ship from your randomization list.
-    - `bytier <tier>`: Randomly selects any ship from your list at the chosen tier.
-    - `bytype <type>`: Randomly selects any ship from your list with the chosen type.
-    - `bytypetier <type> <tier>`: Randomly selects a ship from your list with the chosen type and tier.
-    - `bytiertype <tier> <type>`: The same as `bytypetier`, but with the arguments reversed.
-    """
-    await ctx.message.reply(help_text)
+@bot.command('info')
+async def info_msg(ctx: commands.Context):
+    """Detailed command information."""
+    help_text = ["# Keel of Fortune Commands",
+        f"- All commands are prefixed with `{config['config']['prefix']}` (default: `+`).",
+        "- Required arguments are marked with <angle brackets>.",
+        "- Arguments marked with `*` require one or more entries.",
+        "## Supported gamemodes",
+        "- `asymmetric` or `asym`: Asymmetric, tiers VI–X",
+        "- `operations` or `ops`: Operations, tiers VI–X",
+        "- `randoms` or `rand`: Randoms, tiers V–X",
+        "- `lowrandoms` or `lowrand`: Randoms, tiers I–IV",
+        "- `lowoperations` or `lowops`: Operations, tiers II–V",
+        "## Supported types",
+        "- `BB`: Battleships",
+        "- `CV`: Carriers",
+        "- `CX`: Cruisers",
+        "- `DD`: Destroyers",
+        "- `SS`: Submarines",
+        "## Commands",
+        "### Unregistered commands",
+        "These commands do not require registering a randomization list.",
+        "- `help`: Display this message.",
+        "- `tier <gamemode>`: Select a valid tier for the gamemode.",
+        "- `register`: Register the attached randomization list.",
+        "- `shiplist`: Obtain an unfilled randomization list template.",
+        "- `unregister`:  Unregister your randomization list.",
+        "- `div <gamemode> <divsize> <tier>`: Generate a valid slot composition for the gamemode, division size, and tier.",
+        "### Registered commands",
+        "These commands require registering a randomization list. Players included by `@mention` must be registered.",
+        "- `comp <gamemode> <tier> <* @mentions>`: Select a ship by gamemode and tier for the user and all `@mention`'d players.",
+        "- `slots <gamemode> <tier> <* @mentions>`: Select a slot by gamemode and tier for the user and all `@mention`'d players.",
+        "- `any`: Selects any ship from your randomization list.",
+        "- `bytier <tier>`: Selects a ship from your list for the tier.",
+        "- `bytype <type>`: Selects a ship from your list for the type.",
+        "- `bytypetier <type> <tier>`: Randomly selects a ship from your list with the type and tier.",
+        "- `bytiertype <tier> <type>`: The same as `bytypetier`, but with reversed arguments.",]
+    await ctx.message.reply("\n".join(help_text))
 
 
 # noinspection PyTypeHints
 @bot.command('tier')
 async def random_tier(ctx: commands.Context, gamemode: Preset.from_name):
-    """Reply with a random tier for the applicable gamemode."""
+    """Select a valid tier for the chosen gamemode."""
     tier = randomizer.tier(gamemode)
     await ctx.message.reply(f'Your random tier is **{roman(tier)}**.')
 
 
 @bot.command('register')
 async def register(ctx: commands.Context):
-    """Enable a user to register their randomization list."""
+    """Register the attached randomization list."""
     if len(ctx.message.attachments) != 1:
         await ctx.message.reply("You must attach your randomization list worksheet."
                                 " Use `+shiplist` to get a blank template.")
@@ -129,14 +125,14 @@ async def register(ctx: commands.Context):
 
 @bot.command('unregister')
 async def unregister(ctx: commands.Context):
-    """Enable a user to unregister their randomization list."""
+    """Unregister your randomization list."""
     user_registry.unregister(str(ctx.message.author.id))
     await ctx.message.reply("Your randomization list has been removed from the registry.")
 
 
 @bot.command('shiplist')
 async def ship_list(ctx: commands.Context):
-    """Provide a template randomization list."""
+    """Obtain an unfilled randomization list template."""
     src = ship_catalog.Source
     dst = Path(f'{ctx.message.author.display_name}-ship-list-template{src.suffix}')
     shutil.copy(src, dst)
@@ -153,8 +149,7 @@ async def ship_list(ctx: commands.Context):
 # noinspection PyTypeHints
 @bot.command('div')
 async def division(ctx: commands.Context, gamemode: Preset.from_name, divsize: int, tier: int):
-    """Provide a random player-agnostic composition of ship slots for the selected gamemode,
-    division size, and tier."""
+    """Generate a valid slot composition for the gamemode, division size, and tier."""
     comp = randomizer.division_anonymous(divsize, tier, gamemode)
     rows = [f'- [{stype}]: {count}' for stype, count in sorted(comp.items(), key=lambda x: x[0]) if count]
     msg = f"At tier **{roman(tier)}** with {divsize} players, your division slots are:\n" + '\n'.join(rows)
@@ -164,8 +159,7 @@ async def division(ctx: commands.Context, gamemode: Preset.from_name, divsize: i
 # noinspection PyTypeHints
 @bot.command('comp')
 async def div_comp(ctx: commands.Context, gamemode: Preset.from_name, tier: int, *_):
-    """Provide a random composition of ships for the selected gamemode and tier while accounting
-    for the included players' ship registration lists."""
+    """Select a ship by gamemode and tier for the user and all `@mention`'d players."""
     handles = get_handles(ctx)
     if not await validate_registration(ctx, handles):
         return
@@ -178,6 +172,7 @@ async def div_comp(ctx: commands.Context, gamemode: Preset.from_name, tier: int,
 # noinspection PyTypeHints
 @bot.command('slots')
 async def div_slots(ctx: commands.Context, gamemode: Preset.from_name, tier: int, *_):
+    """Select a slot by gamemode and tier for the user and all `@mention`'d players."""
     handles = get_handles(ctx)
     if not await validate_registration(ctx, handles):
         return
@@ -189,6 +184,7 @@ async def div_slots(ctx: commands.Context, gamemode: Preset.from_name, tier: int
 
 @bot.command('any')
 async def any_ship(ctx: commands.Context):
+    """Selects any ship from your randomization list."""
     handles = get_handles(ctx, solo=True)
     if not await validate_registration(ctx, handles):
         return
@@ -200,6 +196,7 @@ async def any_ship(ctx: commands.Context):
 
 @bot.command('bytier')
 async def by_tier(ctx: commands.Context, tier: int):
+    """Selects any ship from your list for the tier."""
     handles = get_handles(ctx, solo=True)
     if not await validate_registration(ctx, handles):
         return
@@ -211,6 +208,7 @@ async def by_tier(ctx: commands.Context, tier: int):
 
 @bot.command('bytype')
 async def by_type(ctx: commands.Context, stype: str):
+    """Selects any ship from your list for the type."""
     handles = get_handles(ctx, solo=True)
     if not await validate_registration(ctx, handles):
         return
@@ -222,6 +220,7 @@ async def by_type(ctx: commands.Context, stype: str):
 
 @bot.command('bytypetier')
 async def by_type_tier(ctx: commands.Context, stype: str, tier: int):
+    """Selects any ship from your list for the type and tier."""
     handles = get_handles(ctx, solo=True)
     if not await validate_registration(ctx, handles):
         return
@@ -232,6 +231,7 @@ async def by_type_tier(ctx: commands.Context, stype: str, tier: int):
 
 @bot.command('bytiertype')
 async def by_tier_type(ctx: commands.Context, tier: int, stype: str):
+    """Selects any ship from your list for the tier and type."""
     await by_type_tier(ctx, stype, tier)
 
 
