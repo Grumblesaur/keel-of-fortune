@@ -1,6 +1,5 @@
 import os
 import shutil
-import time
 
 import configuration
 import discord
@@ -49,11 +48,11 @@ async def on_ready() -> None:
                               activity=discord.Activity(
                                   type=discord.ActivityType.custom,
                                   name="custom",
-                                  state="Listening for `+info`"
+                                  state="+info for instructions"
                               ))
 
 
-@bot.command('info')
+@bot.command('info', aliases=["information"], ignore_extra=True)
 async def info_msg(ctx: commands.Context):
     """Detailed command information."""
     help_text = ["# Keel of Fortune",
@@ -95,14 +94,14 @@ async def info_msg(ctx: commands.Context):
 
 
 # noinspection PyTypeHints
-@bot.command('tier')
+@bot.command('tier', ignore_extra=True)
 async def random_tier(ctx: commands.Context, gamemode: Preset.from_name):
     """Select a valid tier for the chosen gamemode."""
     tier = randomizer.tier(gamemode)
     await ctx.message.reply(f'Your random tier is **{roman(tier)}**.')
 
 
-@bot.command('register')
+@bot.command('register', aliases=["reg"], ignore_extra=True)
 async def register(ctx: commands.Context):
     """Register the attached randomization list."""
     if len(ctx.message.attachments) != 1:
@@ -124,14 +123,14 @@ async def register(ctx: commands.Context):
         os.remove(temp_file)
 
 
-@bot.command('unregister')
+@bot.command('unregister', aliases=["unreg"], ignore_extra=True)
 async def unregister(ctx: commands.Context):
     """Unregister your randomization list."""
     user_registry.unregister(str(ctx.message.author.id))
     await ctx.message.reply("Your randomization list has been removed from the registry.")
 
 
-@bot.command('shiplist')
+@bot.command('shiplist', aliases=["catalog", "worksheet", "spreadsheet"], ignore_extra=True)
 async def ship_list(ctx: commands.Context):
     """Obtain an unfilled randomization list template."""
     src = ship_catalog.Source
@@ -148,7 +147,7 @@ async def ship_list(ctx: commands.Context):
 
 
 # noinspection PyTypeHints
-@bot.command('div')
+@bot.command('div', aliases=["division"])
 async def division(ctx: commands.Context, gamemode: Preset.from_name, divsize: int, tier: int):
     """Generate a valid slot composition for the gamemode, division size, and tier."""
     comp = randomizer.division_anonymous(divsize, tier, gamemode)
@@ -158,7 +157,7 @@ async def division(ctx: commands.Context, gamemode: Preset.from_name, divsize: i
 
 
 # noinspection PyTypeHints
-@bot.command('comp')
+@bot.command('comp', aliases=["composition"])
 async def div_comp(ctx: commands.Context, gamemode: Preset.from_name, tier: int, *_):
     """Select a ship by gamemode and tier for the user and all `@mention`'d players."""
     handles = get_handles(ctx)
