@@ -1,8 +1,10 @@
-from exceptions import ImproperSize
+import synonyms
+from exceptions import ImproperSize, UnrecognizedNation, NoShips
 from registration import ShipCatalog, UserRegistry
 from random import choice, choices, randint
 from collections import defaultdict, Counter
 from enum import IntEnum
+from utils import Roman
 
 
 def one_in(n: int) -> bool:
@@ -28,7 +30,7 @@ class Preset(IntEnum):
             return cls.Random
         if 'lowrandoms'.startswith(name):
             return cls.LowTierRandom
-        if 'lowoperations'.startswith(name):
+        if 'lowoperations'.startswith(name) or name == 'lowops':
             return cls.LowTierOperations
         return cls.NoLimits
 
@@ -167,21 +169,83 @@ class Randomizer:
     def __init__(self, ship_catalog: ShipCatalog, user_registry: UserRegistry):
         self.catalog = ship_catalog
         self.registry = user_registry
+        self.nations = list(set(synonyms.nations.values()))
+
+    def choice_kernel(self, handle: str, stype: str | None = None,
+                      tier: int | None = None, nation: str | None = None) -> str:
+        if not (player_ships := self.registry.fetch_ships(handle)):
+            raise NoShips("Your randomization list has no ships.")
+        if nation is not None:
+            nation = synonyms.nations.get(nation, nation)
+
+        choice_set = set()
+        match stype, tier, nation:
+            case ty, None, None if ty is not None:
+                ships_of_type = self.catalog.by_type[ty]
+                if not (choice_set := player_ships & ships_of_type):
+                    raise NoShips(f"You have no ships of type [{ty}].")
+            case None, tr, None if tr is not None:
+                ships_of_tier = self.catalog.by_tier[tr]
+                if not (choice_set := player_ships & ships_of_tier):
+                    raise NoShips(f"You have no ships at tier **{Roman(tr)}**.")
+            case None, None, nat if nat is not None:
+                ships_of_nation = self.catalog.by_nation[nat]
+                if not (choice_set := player_ships & ships_of_nation):
+                    raise NoShips(f"You have no ships of nation {nat}.")
+            case ty, tr, None if ty is not None and tr is not None:
+                ships_of_type = self.catalog.by_type[ty]
+                ships_of_tier = self.catalog.by_tier[tr]
+                if not (choice_set := player_ships & ships_of_tier & ships_of_type):
+                    raise NoShips(f"You have no ships of type [{ty}] at tier **{Roman(tr)}**.")
+            case None, tr, nat if tr is not None and nat is not None:
+                ships_of_tier = self.catalog.by_type[tr]
+                ships_of_nation = self.catalog.by_nation[nat]
+                if not (choice_set := player_ships & ships_of_tier & ships_of_nation):
+                    raise NoShips(f"You have no {synonyms.demonyms[nat]} ships at tier **{Roman(tr)}**.")
+            case ty, None, nat if ty is not None and nat is not None:
+                ships_of_type = self.catalog.by_type[ty]
+                ships_of_nation = self.catalog.by_nation[nat]
+                if not (choice_set := player_ships & ships_of_type & ships_of_nation):
+                    raise NoShips(f"You have no {synonyms.demonyms[nat]} ships of type [{ty}].")
+            case ty, tr, nat if ty is not None and tr is not None and nat is not None:
+                ships_of_type = self.catalog.by_type[ty]
+                ships_of_tier = self.catalog.by_tier[tr]
+                ships_of_nation = self.catalog.by_nation[nat]
+                if not (choice_set := player_ships & ships_of_type and ships_of_nation and ships_of_tier):
+                    raise NoShips(f"You have no {synonyms.demonyms[nat]} ships of type [{ty}] at tier **{Roman(tr)}**.")
+            case None, None, None:
+                choice_set = player_ships
+
+        ship = choice(list(choice_set))
+        ship_info = self.catalog.lookup[ship]
+        if stype is None:
+            stype = ship_info['type']
+        if tier is None:
+            tier = ship_info['tier']
+        return f'Your ship assignment is [{stype}] **{Roman(tier)}** {ship}.'
+
+
 
     def any_ship(self, handle) -> str:
-        return choice(list(self.registry.fetch_ships(handle)))
+        return self.choice_kernel(handle)
 
     def by_tier(self, handle: str, tier: int) -> str:
-        valid = self.registry.fetch_ships(handle) & self.catalog.by_tier[tier]
-        return choice(list(valid))
+        return self.choice_kernel(handle, tier=tier)
 
     def by_type(self, handle: str, stype: str) -> str:
-        valid = self.registry.fetch_ships(handle) & self.catalog.by_type[stype]
-        return choice(list(valid))
+        return self.choice_kernel(handle, stype=stype)
 
     def by_type_and_tier(self, handle: str, tier: int, stype: str) -> str:
-        valid = self.registry.fetch_ships(handle) & self.catalog.by_tier[tier] & self.catalog.by_type[stype]
-        return choice(list(valid))
+        return self.choice_kernel(handle, tier=tier, stype=stype)
+
+    def by_type_and_nation(self, handle: str, stype: str, nation: str) -> str:
+        return self.choice_kernel(handle, nation=nation, stype=stype)
+
+    def by_tier_and_nation(self, handle: str, tier: int, nation: str) -> str:
+        return self.choice_kernel(handle, nation=nation, tier=tier)
+
+    def by_type_tier_nation(self, handle: str, stype: str, tier: int, nation: str) -> str:
+        return self.choice_kernel(handle, stype=stype, tier=tier, nation=nation)
 
     def division(self, handles: list[str], tier: int, preset: Preset = Preset.NoLimits, choose_ships: bool = True) -> dict:
         same_tier = self.catalog.by_tier[tier]
@@ -229,6 +293,10 @@ class Randomizer:
     @staticmethod
     def tier(preset: Preset, allow_superships: bool = False) -> int:
         return choice(preset.tiers(allow_superships=allow_superships))
+
+    def nation(self):
+        return choice(self.nations)
+
 
 
 

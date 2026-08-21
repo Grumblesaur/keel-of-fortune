@@ -1,4 +1,12 @@
-nations: dict[str, str] = {
+from pandas import read_excel
+from pathlib import Path
+
+Casefolded = str
+AllCaps = str
+ProperCase = str
+
+
+nations: dict[Casefolded, ProperCase] = {
     'usa': 'USA',
     'usn': 'USA',
     'us': 'USA',
@@ -60,3 +68,37 @@ nations: dict[str, str] = {
     'spain': 'Spain',
     'spanish': 'Spain',
 }
+
+def _make_ship_synonyms(path: Path = Path("known_ships.ods")) -> dict[Casefolded | AllCaps | ProperCase, ProperCase]:
+    workbook = read_excel(path, sheet_name=None)
+    _ship_synonyms = dict[str, str]()
+    for nation, df in workbook.items():
+        for index, (ship_name, alt_names, *_) in df.iterrows():
+            for alt_name in alt_names.split(';'):
+                _ship_synonyms[stripped := alt_name.strip()] = ship_name
+                _ship_synonyms[stripped.lower()] = ship_name
+                _ship_synonyms[stripped.upper()] = ship_name
+            _ship_synonyms[ship_name.lower()] = ship_name
+            _ship_synonyms[ship_name.upper()] = ship_name
+    return _ship_synonyms
+
+
+ships: dict[Casefolded | AllCaps | ProperCase, ProperCase] = _make_ship_synonyms()
+
+
+demonyms: dict[ProperCase, ProperCase] = {
+    'USA': "United States",
+    "UK": "British",
+    "USSR": "Soviet",
+    "Japan": "Japanese",
+    "Germany": "German",
+    "France": "French",
+    "Italy": "Italian",
+    "Pan-Asia": "Pan-Asian",
+    "Europe": "European",
+    "Pan-America": "Pan-American",
+    "Commonwealth": "Commonwealth",
+    "Netherlands": "Dutch",
+    "Spain": "Spanish",
+}
+

@@ -1,4 +1,5 @@
 import os
+import synonyms
 from pathlib import Path
 from pandas import read_excel
 from collections import defaultdict
@@ -27,7 +28,7 @@ def read_registration(ship_file: Path, limit: int | None = 70 * 1024) -> set[str
         for nation, df in sheets.items():
             for index, (name, _, _, _, randomize, *_) in df.iterrows():
                 if not isnan(randomize):
-                    player_ships.add(name)
+                    player_ships.add(synonyms.ships.get(name, name))
     elif ship_file.suffix == '.txt':
         with open(ship_file, 'r') as f:
             player_ships = set(f.read().splitlines())
