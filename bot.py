@@ -235,6 +235,12 @@ async def by_tier_type(ctx: commands.Context, tier: int, stype: str):
     await by_type_tier(ctx, stype, tier)
 
 
+@bot.command('bynation')
+async def by_nation(ctx: commands.Context, nation: str):
+    """Selects any ship from your list from the given nation."""
+    pass
+
+
 def main():
     bot.run(token)
 

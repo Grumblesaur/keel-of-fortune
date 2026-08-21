@@ -76,6 +76,7 @@ class UserRegistry:
 
 class ShipCatalog:
     Source = Path("known_ships.ods")
+
     def __init__(self, known_ships: list[tuple[int, str, str, str, str]] | None = None):
         if known_ships is None:
             known_ships = read_launch(self.Source)
@@ -83,6 +84,7 @@ class ShipCatalog:
         self.by_type = self.organize_by_type(known_ships)
         self.by_nation = self.organize_by_nation(known_ships)
         self.lookup = self.organize_for_lookup(known_ships)
+        self.nations = self.by_nation.keys()
 
     def has(self, ship: str) -> bool:
         found = self.lookup.get(ship)
