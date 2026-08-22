@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 from registration import UserRegistry, ShipCatalog
 from randomizer import Preset, Randomizer
-from utils import Roman, Tier, Type, Nation, superships
+from utils import Roman, Tier, Type, Nation, superships, Info
 from pathlib import Path
 from exceptions import UnrecognizedShips, UnrecognizedFileType, UnrecognizedUsers, RandomizerError
 
@@ -14,8 +14,9 @@ config = configuration.load()
 token = config['auth']['token']
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix=commands.when_mentioned_or(config['config']['prefix']), intents=intents)
+bot = commands.Bot(command_prefix=commands.when_mentioned_or(prefix := config['config']['prefix']), intents=intents)
 randomizer = Randomizer(ship_catalog := ShipCatalog(), user_registry := UserRegistry())
+info = Info(prefix, config['config'].get('name', 'Keel of Fortune'))
 
 
 def get_handles(ctx: commands.Context, solo: bool = False) -> dict[str, str]:
@@ -78,7 +79,7 @@ async def div_comp(ctx: commands.Context, gamemode: Preset.from_name, tier: Tier
     await ctx.message.reply(message)
 
 
-# noinspection PyTypeHints
+# noinspection PyTypeHints,PyTypeChecker
 @bot.command('slots')
 async def div_slots(ctx: commands.Context, gamemode: Preset.from_name, tier: Tier.parse, *args):
     """Select a slot by gamemode and tier for the user and all `@mention`'d players."""
@@ -182,50 +183,16 @@ async def on_ready() -> None:
                               ))
 
 
-@bot.command('info', aliases=["information"], ignore_extra=True)
-async def info_msg(ctx: commands.Context):
+@bot.command('info', aliases=["information"])
+async def info_msg(ctx: commands.Context, keyword: str | None = None):
     """Detailed command information."""
-    help_text = ["# Keel of Fortune",
-        f"- All commands are prefixed with `{config['config']['prefix']}` (default: `+`).",
-        "- Required arguments are marked with <angle brackets>.",
-        "- Arguments marked with `*` require one or more entries.",
-        "## Supported gamemodes",
-        "- `asymmetric` or `asym`: Asymmetric, tiers VI–X",
-        "- `operations` or `ops`: Operations, tiers VI–X",
-        "- `randoms` or `rand`: Randoms, tiers V–X",
-        "- `lowrandoms` or `lowrand`: Randoms, tiers I–IV",
-        "- `lowoperations` or `lowops`: Operations, tiers II–V",
-        "## Supported types",
-        "- `BB`: Battleships",
-        "- `CV`: Carriers",
-        "- `CX`: Cruisers",
-        "- `DD`: Destroyers",
-        "- `SS`: Submarines",
-        "## Commands",
-        "### Unregistered commands",
-        "These commands do not require registering a randomization list.",
-        "- `info`: Display this message.",
-        "- `help`: Display a summary of this message.",
-        "- `tier <gamemode>`: Select a valid tier for the gamemode.",
-        "- `register`: Register the attached randomization list.",
-        "- `shiplist`: Obtain an unfilled randomization list template.",
-        "- `unregister`:  Unregister your randomization list.",
-        "- `div <gamemode> <divsize> <tier>`: Generate a valid slot composition for the gamemode, division size, and tier.",
-        "### Registered commands",
-        "These commands require registering a randomization list. Players included by `@mention` must be registered.",
-        "- `comp <gamemode> <tier> <* @mentions>`: Select a ship by gamemode and tier for the user and all `@mention`'d players.",
-        "- `slots <gamemode> <tier> <* @mentions>`: Select a slot by gamemode and tier for the user and all `@mention`'d players.",
-        "- `any`: Selects any ship from your randomization list.",
-        "- `bytier <tier>`: Selects a ship from your list for the tier.",
-        "- `bytype <type>`: Selects a ship from your list for the type.",
-        "- `bytypetier <type> <tier>`: Randomly selects a ship from your list with the type and tier.",
-        "- `bytiertype <tier> <type>`: The same as `bytypetier`, but with reversed arguments.",]
-    await ctx.message.reply("\n".join(help_text))
+    message = info.fetch(keyword)
+    await ctx.message.reply(message)
 
 
 # noinspection PyTypeHints
 @bot.command('tier', ignore_extra=True, aliases=["tiers"])
-async def random_tier(ctx: commands.Context, gamemode: Preset.from_name, *args):
+async def random_tier(ctx: commands.Context, gamemode: Preset.from_name = Preset.NoLimits, *args):
     """Select a valid tier for the chosen gamemode."""
     tier = randomizer.tier(gamemode, allow_superships=superships(args))
     await ctx.message.reply(f'Your random tier is **{Roman(tier)}**.')
