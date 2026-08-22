@@ -4,19 +4,9 @@ from pathlib import Path
 from pandas import read_excel
 from collections import defaultdict
 from exceptions import UnrecognizedShips, SpamError, UnrecognizedFileType
+from utils import isnan
 
-
-def isnan(x) -> bool:
-    return x != x
-
-
-def read_launch(ship_file: Path) -> list[tuple[int, str, str, str, str]]:
-    sheets = read_excel(ship_file, sheet_name=None)
-    known_ships = []
-    for nation, df in sheets.items():
-        for index, (name, alternate_names, tier, stype, *_) in df.iterrows():
-            known_ships.append((tier, nation, stype, name, alternate_names))
-    return known_ships
+KnownShips = list[tuple[str, str, int, str, str]]
 
 
 def read_registration(ship_file: Path, limit: int | None = 70 * 1024) -> set[str]:
@@ -26,7 +16,7 @@ def read_registration(ship_file: Path, limit: int | None = 70 * 1024) -> set[str
         sheets = read_excel(ship_file, sheet_name=None)
         player_ships = set()
         for nation, df in sheets.items():
-            for index, (name, _, _, _, randomize, *_) in df.iterrows():
+            for index, (name, _, _, _, randomize) in df.iterrows():
                 if not isnan(randomize):
                     player_ships.add(synonyms.ships.get(name, name))
     elif ship_file.suffix == '.txt':
@@ -78,9 +68,17 @@ class UserRegistry:
 class ShipCatalog:
     Source = Path("known_ships.ods")
 
-    def __init__(self, known_ships: list[tuple[int, str, str, str, str]] | None = None):
-        if known_ships is None:
-            known_ships = read_launch(self.Source)
+    @classmethod
+    def load(cls, ship_file: Path | None = None) -> KnownShips:
+        sheets = read_excel(ship_file or cls.Source, sheet_name=None)
+        known_ships = []
+        for nation, df in sheets.items():
+            for index, (name, alternate_names, tier, stype, *_) in df.iterrows():
+                known_ships.append((name, alternate_names, tier, stype, nation))
+        return known_ships
+
+    def __init__(self, known_ships: KnownShips | None = None):
+        known_ships = known_ships or self.load(self.Source)
         self.by_tier = self.organize_by_tier(known_ships)
         self.by_type = self.organize_by_type(known_ships)
         self.by_nation = self.organize_by_nation(known_ships)
@@ -96,32 +94,32 @@ class ShipCatalog:
         return ship_data['type'], ship_data['tier']
 
     @staticmethod
-    def organize_by_tier(known_ships: list[tuple[int, str, str, str, str]]) -> dict[int, set[str]]:
+    def organize_by_tier(known_ships: list[tuple[str, str, int, str, str]]) -> dict[int, set[str]]:
         by_tier = {x: set() for x in range(1, 12)}
-        for tier, nation, stype, name, alternate_names in known_ships:
+        for name, alternate_names, tier, stype, nation in known_ships:
             by_tier[tier].add(name)
         return by_tier
 
     @staticmethod
-    def organize_for_lookup(known_ships: list[tuple[int, str, str, str, str]]) -> dict[str, dict]:
+    def organize_for_lookup(known_ships: KnownShips) -> dict[str, dict]:
         info = defaultdict(dict)
-        for tier, nation, stype, name, alternate_names in known_ships:
+        for name, alternate_names, tier, stype, nation in known_ships:
             info[name]['tier'] = tier
             info[name]['nation'] = nation
             info[name]['type'] = stype
         return info
 
     @staticmethod
-    def organize_by_type(known_ships: list[tuple[int, str, str, str, str]]) -> dict[str, set[str]]:
+    def organize_by_type(known_ships: KnownShips) -> dict[str, set[str]]:
         by_type = defaultdict(set)
-        for tier, nation, stype, name, alternate_names in known_ships:
+        for name, alternate_names, tier, stype, nation in known_ships:
             by_type[stype].add(name)
         return by_type
 
     @staticmethod
-    def organize_by_nation(known_ships: list[tuple[int, str, str, str, str]]) -> dict[str, set[str]]:
+    def organize_by_nation(known_ships: KnownShips) -> dict[str, set[str]]:
         by_nation = defaultdict(set)
-        for tier, nation, stype, name, alternate_names in known_ships:
+        for name, alternate_names, tier, stype, nation in known_ships:
             by_nation[nation].add(name)
         return by_nation
 

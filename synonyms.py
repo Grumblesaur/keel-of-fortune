@@ -1,5 +1,6 @@
 from pandas import read_excel
 from pathlib import Path
+from utils import isnan
 
 Casefolded = str
 AllCaps = str
@@ -67,6 +68,8 @@ nations: dict[Casefolded, ProperCase] = {
     'dutch': 'Netherlands',
     'spain': 'Spain',
     'spanish': 'Spain',
+    'sp': 'Spain',
+    'es': 'Spain',
 }
 
 def _make_ship_synonyms(path: Path = Path("known_ships.ods")) -> dict[Casefolded | AllCaps | ProperCase, ProperCase]:
@@ -74,6 +77,7 @@ def _make_ship_synonyms(path: Path = Path("known_ships.ods")) -> dict[Casefolded
     _ship_synonyms = dict[str, str]()
     for nation, df in workbook.items():
         for index, (ship_name, alt_names, *_) in df.iterrows():
+            alt_names = '' if isnan(alt_names) else alt_names
             for alt_name in alt_names.split(';'):
                 _ship_synonyms[stripped := alt_name.strip()] = ship_name
                 _ship_synonyms[stripped.lower()] = ship_name

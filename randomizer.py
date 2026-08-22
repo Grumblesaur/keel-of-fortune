@@ -198,7 +198,7 @@ class Randomizer:
                 if not (choice_set := player_ships & ships_of_tier & ships_of_type):
                     raise NoShips(f"You have no ships of type [{ty}] at tier **{Roman(tr)}**.")
             case None, tr, nat if tr is not None and nat is not None:
-                ships_of_tier = self.catalog.by_type[tr]
+                ships_of_tier = self.catalog.by_tier[tr]
                 ships_of_nation = self.catalog.by_nation[nat]
                 if not (choice_set := player_ships & ships_of_tier & ships_of_nation):
                     raise NoShips(f"You have no {synonyms.demonyms[nat]} ships at tier **{Roman(tr)}**.")

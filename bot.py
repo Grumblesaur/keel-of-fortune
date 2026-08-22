@@ -6,7 +6,8 @@ import discord
 from discord.ext import commands
 from registration import UserRegistry, ShipCatalog
 from randomizer import Preset, Randomizer
-from utils import Roman, Tier, Type, Nation, superships, Info
+from utils import Roman, Tier, Type, Nation, superships
+from information import Info
 from pathlib import Path
 from exceptions import UnrecognizedShips, UnrecognizedFileType, UnrecognizedUsers, RandomizerError
 
@@ -127,7 +128,7 @@ async def by_type_tier(ctx: commands.Context, stype: Type.parse, tier: Tier.pars
 
 # noinspection PyTypeHints
 @bot.command('bytiertype')
-async def by_tier_type(ctx: commands.Context, tier, stype):
+async def by_tier_type(ctx: commands.Context, tier: Tier.parse, stype: Type.parse):
     """Selects any ship from your list for the tier and type."""
     await by_type_tier(ctx, stype, tier)
 
@@ -142,7 +143,7 @@ async def by_tier_nation(ctx: commands.Context, tier: Tier.parse, nation: Nation
 
 # noinspection PyTypeHints
 @bot.command('bynationtier')
-async def by_nation_tier(ctx: commands.Context, nation, tier):
+async def by_nation_tier(ctx: commands.Context, nation: Nation.parse, tier: Tier.parse):
     """Selects any ship from your list for the nation and tier."""
     await by_tier_nation(ctx, tier, nation)
 
@@ -157,7 +158,7 @@ async def by_type_nation(ctx: commands.Context, stype: Type.parse, nation: Natio
 
 # noinspection PyTypeHints
 @bot.command('bynationtype')
-async def by_nation_type(ctx: commands.Context, nation, stype):
+async def by_nation_type(ctx: commands.Context, nation: Nation.parse, stype: Type.parse):
     """Selects any ship from your list for the nation and type."""
     await by_type_nation(ctx, stype, nation)
 
@@ -194,7 +195,7 @@ async def info_msg(ctx: commands.Context, keyword: str | None = None):
 @bot.command('tier', ignore_extra=True, aliases=["tiers"])
 async def random_tier(ctx: commands.Context, gamemode: Preset.from_name = Preset.NoLimits, *args):
     """Select a valid tier for the chosen gamemode."""
-    tier = randomizer.tier(gamemode, allow_superships=superships(args))
+    tier = randomizer.tier(gamemode, allow_superships=superships(*args))
     await ctx.message.reply(f'Your random tier is **{Roman(tier)}**.')
 
 
